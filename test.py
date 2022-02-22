@@ -33,36 +33,36 @@ class Action():
 
 
     def get_address_text(self):
-        print('\nВведи адрес')
-        string = input()
-        self.check_imput_menu(string)
-        try:
-            result = self.dadata.suggest("address", string, language=self.lang)
-        except:
-            print('\nНе могу получить доступ к сервису.')
-            print('Может быть в настройках не указан ключ?')
-            self.show_menu()
-        addresses = []
-        for addr in result:
-            addresses.append(addr['value'])
-        print('\nВот что нашлось по твоему запросу:')
-        for num, addr in enumerate(addresses):
-            print(str(num + 1) + ':', addr)
-        number = self.get_choice_number(len(addresses), 'Введи номер нужного адреса')
-        string = result[number-1]['unrestricted_value']
-        try:
-            result = self.dadata.suggest("address", string, language=self.lang, count=1)
-        except:
-            print('\nДаже не знаю, что могло пойти не так')
-            self.show_menu()
-        x = result[0]['data']['geo_lat']
-        y = result[0]['data']['geo_lon']
-        if x is not None and y is not None:
-            print('\n', x, y)
-        else:
-            print('\nКоординаты неизвестны :(')
-        self.get_address_text()
-
+        while True:
+            print('\nВведи адрес')
+            string = input()
+            self.check_imput_menu(string)
+            try:
+                result = self.dadata.suggest("address", string, language=self.lang)
+            except:
+                print('\nНе могу получить доступ к сервису.')
+                print('Может быть в настройках не указан ключ?')
+                break
+            addresses = []
+            for addr in result:
+                addresses.append(addr['value'])
+            print('\nВот что нашлось по твоему запросу:')
+            for num, addr in enumerate(addresses):
+                print(str(num + 1) + ':', addr)
+            number = self.get_choice_number(len(addresses), 'Введи номер нужного адреса')
+            string = result[number-1]['unrestricted_value']
+            try:
+                result = self.dadata.suggest("address", string, language=self.lang, count=1)
+            except:
+                print('\nДаже не знаю, что могло пойти не так')
+                break
+            x = result[0]['data']['geo_lat']
+            y = result[0]['data']['geo_lon']
+            if x is not None and y is not None:
+                print('\n', x, y)
+            else:
+                print('\nКоординаты неизвестны :(')
+        self.show_menu()
 
     def get_choice_number(self, length, text):
         if text != '':
