@@ -13,30 +13,32 @@ class Action():
         self.dadata = Dadata(self.token)
 
 
-    def greet(self):
+    def main(self):
         print('Привет! Это меню, чтобы сюда попасть, в любой момент набери 0 (ноль)')
-        self.show_menu()
-
-
-    def show_menu(self):
-        print('\nВыбери действие: ')
-        print('1. Искать адрес')
-        print('2. Изменить настройки')
-        print('3. Выйти')
-        number = self.get_choice_number(3, '')
-        if number == 1:
-            self.get_address_text()
-        elif number == 2:
-            self.change_settings()
-        elif number == 3:
-            self.exit_program()
+        while True:
+            print('\nВыбери действие: ')
+            print('1. Искать адрес')
+            print('2. Изменить настройки')
+            print('3. Выйти')
+            number = self.get_choice_number(3, '')
+            if number == 0:
+                continue
+            elif number == 1:
+                self.get_address_text()
+                continue
+            elif number == 2:
+                self.change_settings()
+                continue
+            elif number == 3:
+                self.exit_program()
 
 
     def get_address_text(self):
         while True:
             print('\nВведи адрес')
             string = input()
-            self.check_imput_menu(string)
+            if self.check_input_menu(string):
+                break
             try:
                 result = self.dadata.suggest("address", string, language=self.lang)
             except:
@@ -46,10 +48,15 @@ class Action():
             addresses = []
             for addr in result:
                 addresses.append(addr['value'])
+            if len(addresses) == 0:
+                print('\nПо твоему запросу ничего не нашлось. Попробуй еще раз')
+                continue
             print('\nВот что нашлось по твоему запросу:')
             for num, addr in enumerate(addresses):
                 print(str(num + 1) + ':', addr)
             number = self.get_choice_number(len(addresses), 'Введи номер нужного адреса')
+            if number == 0:
+                break
             string = result[number-1]['unrestricted_value']
             try:
                 result = self.dadata.suggest("address", string, language=self.lang, count=1)
@@ -62,30 +69,35 @@ class Action():
                 print('\n', x, y)
             else:
                 print('\nКоординаты неизвестны :(')
-        self.show_menu()
+
 
     def get_choice_number(self, length, text):
         if text != '':
             print(text)
-        number = input()
-        self.check_imput_menu(number)
-        try:
-            number = int(number)
-            if number > 0 and number <= length:
-                return number
-            else:
-                text = '\nНужно ввести число от 1 до ' + str(length)
-                return self.get_choice_number(length, text)
-        except:
-            text = '\nНужно ввести число от 1 до ' + str(length)
-            return self.get_choice_number(length, text)
+        while True:
+            number = input()
+            if self.check_input_menu(number):
+                return 0
+            try:
+                number = int(number)
+                if number > 0 and number <= length:
+                    return number
+                else:
+                    print('\nНужно ввести число от 1 до ' + str(length))
+                    continue
+            except:
+                print('\nНужно ввести число от 1 до ' + str(length))
+                continue
+
 
     def change_settings(self):
         print('\nВыбери настройку:')
         print('1. API ключ')
         print('2. Язык')
         num = self.get_choice_number(2, '')
-        if num == 1:
+        if num == 0:
+            return None
+        elif num == 1:
             self.change_key()
         else:
             self.change_lang()
@@ -93,21 +105,23 @@ class Action():
 
     def change_key(self):
         print('\nВведи новый ключ')
-        value = input()
-        self.check_imput_menu(value)
-        valid = self.check_key_input(value)
-        if valid:
-            success = self.settings.change_key(value)
-            if success:
-                self.token = value
-                self.dadata = Dadata(self.token)
-                print('\nУспешно!')
+        while True:
+            value = input()
+            if self.check_input_menu(value):
+                return None
+            valid = self.check_key_input(value)
+            if valid:
+                success = self.settings.change_key(value)
+                if success:
+                    self.token = value
+                    self.dadata = Dadata(self.token)
+                    print('\nУспешно!')
+                else:
+                    print('\nНе получилось :(')
+                return None
             else:
-                print('\nНе получилось :(')
-            self.show_menu()
-        else:
-            print('\nНедопустимые символы')
-            self.change_key()
+                print('\nНедопустимые символы. Попробуй еще раз')
+                continue
 
 
     def change_lang(self):
@@ -115,6 +129,8 @@ class Action():
         print('1. ru')
         print('2. en')
         num = self.get_choice_number(2, '')
+        if num == 0:
+            return None
         if num == 1:
             lang = 'ru'
         else:
@@ -125,12 +141,14 @@ class Action():
             self.lang = lang
         else:
             print('\nНе получилось :(')
-        self.show_menu()
+        return None
 
 
-    def check_imput_menu(self, val):
+    def check_input_menu(self, val):
         if val == '0':
-            self.show_menu()
+            return True
+        else:
+            return False
 
 
     @staticmethod
@@ -149,4 +167,4 @@ class Action():
 
 if __name__ == '__main__':
     a = Action()
-    a.greet()
+    a.main()
